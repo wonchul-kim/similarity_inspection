@@ -1,1 +1,4 @@
 playwright
+opencv-python
+kornia
+matplotlib

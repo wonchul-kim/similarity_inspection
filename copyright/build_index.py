@@ -1,7 +1,7 @@
 import os.path as osp
 import argparse, os, numpy as np, tqdm
 from copyright.src.embedder import VisualEmbedder, EmbeddingIndex
-from copyright.utils.functionals import load_image_bgr
+from copyright.utils.functionals import load_image_bgr, compute_starts
 import yaml
 
 from pathlib import Path
@@ -13,33 +13,11 @@ def get_args():
     ap.add_argument("--config", default=str(ROOT / "configs/default.yaml"))
     return ap.parse_args()
 
-
-def _compute_starts(length, patch_size):
-    """Compute start coordinates that cover [0,length) using non-overlapping patches
-    but ensure the right/bottom edge is covered (last patch aligned to end)."""
-    if patch_size <= 0:
-        return [0]
-    if length <= patch_size:
-        return [0]
-    starts = list(range(0, length - patch_size + 1, patch_size))
-    if not starts:
-        starts = [max(0, length - patch_size)]
-    elif starts[-1] + patch_size < length:
-        # add final start aligned to right/bottom edge
-        last = max(0, length - patch_size)
-        if last not in starts:
-            starts.append(last)
-    # ensure sorted unique
-    starts = sorted(dict.fromkeys(starts))
-    return starts
-
-
 def main():
     args = get_args()
     cfg = yaml.safe_load(open(args.config, "r", encoding="utf-8"))
     cfg['embedding']['output_dir'] = osp.join(cfg['output_dir'], cfg['embedding']['output_dir'])
 
-    # patch config (optional)
     patch_cfg = cfg.get("patch", {})
     patch_use = bool(patch_cfg.get("use", False))
     patch_w = int(patch_cfg.get("width", cfg["embedding"]["input_size"]))
@@ -50,7 +28,6 @@ def main():
                         input_size=cfg["embedding"]["input_size"],
                         normalize=cfg["faiss"]["normalize"])
 
-    # collect image paths
     paths = []
     for root,_,files in os.walk(cfg['original_image_dir']):
         for f in files:
@@ -66,7 +43,7 @@ def main():
 
     for p in tqdm.tqdm(paths, desc="Embedding originals"):
         try:
-            img = load_image_bgr(p)  # expected H,W,3, BGR
+            img = load_image_bgr(p)
             if img is None:
                 print("Warning: failed to load", p)
                 continue
@@ -75,7 +52,6 @@ def main():
             continue
 
         if not patch_use:
-            # original behavior: embed the whole image
             try:
                 emb = ve.embed_np_bgr(img)
                 embs.append(emb)
@@ -84,20 +60,18 @@ def main():
                 print("Warning: failed to embed", p, e)
             continue
 
-        # patching behavior
         h, w = img.shape[:2]
-        x_starts = _compute_starts(w, patch_w)
-        y_starts = _compute_starts(h, patch_h)
+        x_starts = compute_starts(w, patch_w)
+        y_starts = compute_starts(h, patch_h)
 
         for y in y_starts:
             for x in x_starts:
-                # compute actual patch size (may be smaller at edges)
                 x2 = min(w, x + patch_w)
                 y2 = min(h, y + patch_h)
                 pw = x2 - x
                 ph = y2 - y
                 patch = img[y:y2, x:x2].copy()
-                # embed patch
+
                 try:
                     emb = ve.embed_np_bgr(patch)
                     embs.append(emb)

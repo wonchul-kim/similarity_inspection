@@ -5,7 +5,6 @@ from PIL import Image
 def sha1_bytes(data: bytes) -> str:
     return hashlib.sha1(data).hexdigest()
 
-
 def set_seed(seed=42):
     random.seed(seed); np.random.seed(seed); torch.manual_seed(seed); torch.cuda.manual_seed_all(seed)
 
@@ -56,3 +55,20 @@ def save_debug_matches(path, img0_rgb, img1_rgb, kpts0, kpts1, matches):
     ax.set_axis_off()
     fig.savefig(path, bbox_inches="tight", dpi=200)
     plt.close(fig)
+
+def compute_starts(length, patch_size):
+    if patch_size <= 0:
+        return [0]
+    if length <= patch_size:
+        return [0]
+    starts = list(range(0, length - patch_size + 1, patch_size))
+    if not starts:
+        starts = [max(0, length - patch_size)]
+    elif starts[-1] + patch_size < length:
+        last = max(0, length - patch_size)
+        if last not in starts:
+            starts.append(last)
+    starts = sorted(dict.fromkeys(starts))
+    return starts
+
+def cosine(a,b): return float((a*b).sum())

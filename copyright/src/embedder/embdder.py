@@ -15,9 +15,18 @@ class VisualEmbedder(nn.Module):
         self.device = torch.device(device if torch.cuda.is_available() or device=="cpu" else "cpu")
         self.normalize = normalize
         self.input_size = input_size
-        if name == "dino_vitl14":
-            # self.model = timm.create_model("vit_large_patch14_dinov2.lvd142m", pretrained=True)
-            self.model = timm.create_model("vit_small_patch16_224", pretrained=True)
+        if "dino2" in name:
+            if 'vigl14' in name:
+                self.model = timm.create_model("vit_giant_patch14_reg4_dinov2.lvd142m", pretrained=True)
+            elif 'vitl14' in name:
+                self.model = timm.create_model("vit_large_patch14_reg4_dinov2.lvd142m", pretrained=True)
+            elif 'vitb14':
+                self.model = timm.create_model('vit_base_patch14_reg4_dinov2.lvd142m', pretrained=True)
+            elif 'vits14':
+                self.model = timm.create_model("vit_small_patch14_reg4_dinov2.lvd142m", pretrained=True)
+            else:
+                raise NotImplementedError(f"There is no such embedder: {name}")
+            
             self.out_dim = self.model.num_features
             self.forward_fn = self._forward_timm
             mean = (0.485,0.456,0.406); std=(0.229,0.224,0.225)
@@ -26,6 +35,33 @@ class VisualEmbedder(nn.Module):
                 T.ToTensor(),
                 T.Normalize(mean, std)
             ])
+        elif "dinov3" in name:
+            if 'vigl14' in name:
+                model_id = "facebook/dinov3-vitgiant14-pretrain-lvd1689m"
+            elif 'vitl14' in name:
+                model_id = "facebook/dinov3-vitlarge14-pretrain-lvd1689m"
+            elif 'vitb16' in name:
+                model_id = "facebook/dinov3-vitb16-pretrain-lvd1689m"
+            elif 'vits14' in name:
+                model_id = "facebook/dinov3-vitsmall14-pretrain-lvd1689m"
+            else:
+                raise NotImplementedError(f"There is no such DINOv3 embedder: {name}")
+
+            from transformers import AutoImageProcessor, Dinov3Model
+
+            self.processor = AutoImageProcessor.from_pretrained(model_id)
+            self.model = Dinov3Model.from_pretrained(model_id)
+            self.out_dim = self.model.config.hidden_size
+            self.forward_fn = self._forward_hf
+
+            mean = (0.485, 0.456, 0.406)
+            std = (0.229, 0.224, 0.225)
+            self.transform = T.Compose([
+                T.Resize((input_size, input_size), interpolation=T.InterpolationMode.BICUBIC),
+                T.ToTensor(),
+                T.Normalize(mean, std),
+            ])
+            
         elif name == "clip_vitl14":
             model, _, preprocess = open_clip.create_model_and_transforms("ViT-L-14", pretrained="openai")
             self.model = model

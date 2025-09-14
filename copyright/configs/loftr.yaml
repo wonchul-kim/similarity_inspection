@@ -1,0 +1,5 @@
+fname1: "/HDD/github/similarity_inspection/assets/original/PDP_(EC) 111174852_2.jpg"
+fname2: "/HDD/github/similarity_inspection/assets/reseller/f622788b0a42dcd2f5f57069e7bb6b9fbf5e1c1f_fullpage.png"
+pretrained: 'outdoor'
+target_height: 2048
+output_dir: '/HDD/github/similarity_inspection/outputs/loftr'

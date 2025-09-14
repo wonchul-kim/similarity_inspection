@@ -9,7 +9,9 @@ patch:
   height: 1024
 
 embedding:
-  name: "dino_vitl14" # ["dino_vitl14", "clip_vitl14"]
+  # name should be one of ["dinov2_vitg14", "dinov2_vitl14", "dinov2_vitb14", "dinov2_vits14", 
+  #                        "clip_vitl14"]
+  name: "dinov3_vits14" 
   embed_dim: 512
   input_size: 224
   output_dir: embedding
@@ -28,3 +30,5 @@ faiss:
 
 thresholds:
   copied: 0.4
+
+

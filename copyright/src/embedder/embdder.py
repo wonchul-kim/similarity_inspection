@@ -35,33 +35,6 @@ class VisualEmbedder(nn.Module):
                 T.ToTensor(),
                 T.Normalize(mean, std)
             ])
-        elif "dinov3" in name:
-            if 'vigl14' in name:
-                model_id = "facebook/dinov3-vitgiant14-pretrain-lvd1689m"
-            elif 'vitl14' in name:
-                model_id = "facebook/dinov3-vitlarge14-pretrain-lvd1689m"
-            elif 'vitb16' in name:
-                model_id = "facebook/dinov3-vitb16-pretrain-lvd1689m"
-            elif 'vits14' in name:
-                model_id = "facebook/dinov3-vitsmall14-pretrain-lvd1689m"
-            else:
-                raise NotImplementedError(f"There is no such DINOv3 embedder: {name}")
-
-            from transformers import AutoImageProcessor, Dinov3Model
-
-            self.processor = AutoImageProcessor.from_pretrained(model_id)
-            self.model = Dinov3Model.from_pretrained(model_id)
-            self.out_dim = self.model.config.hidden_size
-            self.forward_fn = self._forward_hf
-
-            mean = (0.485, 0.456, 0.406)
-            std = (0.229, 0.224, 0.225)
-            self.transform = T.Compose([
-                T.Resize((input_size, input_size), interpolation=T.InterpolationMode.BICUBIC),
-                T.ToTensor(),
-                T.Normalize(mean, std),
-            ])
-            
         elif name == "clip_vitl14":
             model, _, preprocess = open_clip.create_model_and_transforms("ViT-L-14", pretrained="openai")
             self.model = model

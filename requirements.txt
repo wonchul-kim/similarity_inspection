@@ -8,6 +8,4 @@ timm
 wandb==0.12.21
 faiss-gpu
 tf-keras
-easyocr
-sentence_transformers
-numpy==1.26 
+numpy==1.26

@@ -1,17 +1,29 @@
 device: "cuda"   
+original_image_dir: /HDD/github/similarity_inspection/assets/original
+reseller_image_dir: /HDD/github/similarity_inspection/assets/reseller
+output_dir: /HDD/github/similarity_inspection/outputs
+
+patch:
+  use: False
+  width: 1024
+  height: 1024
 
 embedding:
   name: "dino_vitl14"   # ["dino_vitl14", "clip_vitl14"]
   embed_dim: 512
   input_size: 224
+  output_dir: embedding
 
 faiss:
+  index_file: /HDD/github/similarity_inspection/outputs/embedding/originals.faiss
+  catalog_file: /HDD/github/similarity_inspection/outputs/embedding/originals.jsonl
   # 원본 수가 수십~수백 장 이하: Flat(=전수 비교)도 충분히 빠르며 정확도 손실 없음
   # 원본이 수천~수십만 장: IVF(또는 HNSW, IVF-PQ 등)로 가속이 필요 → nlist를 ~sqrt(N)부터 시작해 튜닝 권장. (예: N=10,000이면 nlist≈100)
   normalize: true
   faiss_nlist: 1
   faiss_nprobe: 1
   topk: 1
+  output_dir: scan
 
 thresholds:
   copied: 0.4

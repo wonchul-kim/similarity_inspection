@@ -1,7 +1,6 @@
 import time
 import argparse, os, json, numpy as np, tqdm, cv2, yaml, math
-from copyright.src import (VisualEmbedder, EmbeddingIndex, 
-                                     FusionMLP, fuse_signals)
+from copyright.src import (VisualEmbedder, EmbeddingIndex)
 from copyright.utils.functionals import load_image_bgr, save_debug_matches
 
 from pathlib import Path
@@ -24,20 +23,13 @@ def main():
     cfg = yaml.safe_load(open(args.config, "r", encoding="utf-8"))
     
     
-    ve = VisualEmbedder(name=cfg["visual_backbone"]["name"],
+    ve = VisualEmbedder(name=cfg["embedding"]["name"],
                         device=cfg["device"],
-                        input_size=cfg["visual_backbone"]["input_size"],
-                        normalize=cfg["retrieval"]["normalize"])
+                        input_size=cfg["embedding"]["input_size"],
+                        normalize=cfg["faiss"]["normalize"])
 
-    idx = EmbeddingIndex.load(args.index, args.catalog, normalize=cfg["retrieval"]["normalize"])
-    idx.index.nprobe = cfg["retrieval"]["faiss_nprobe"]
-
-    mlp = None
-    if os.path.exists(cfg["fusion"]["checkpoint"]):
-        import torch
-        mlp = FusionMLP(hidden=cfg["fusion"]["hidden"])
-        mlp.load_state_dict(torch.load(cfg["fusion"]["checkpoint"], map_location="cpu"))
-        mlp.eval()
+    idx = EmbeddingIndex.load(args.index, args.catalog, normalize=cfg["faiss"]["normalize"])
+    idx.index.nprobe = cfg["faiss"]["faiss_nprobe"]
 
     res_paths = []
     for root,_,files in os.walk(args.resellers):
@@ -46,11 +38,11 @@ def main():
                 res_paths.append(os.path.join(root,f))
     res_paths.sort()
 
-    with open(os.path.join(args.out, 'scan.json'), "w", encoding="utf-8") as fout:
+    with open(os.path.join(args.out, 'scan.jsonl'), "w", encoding="utf-8") as fout:
         for p in tqdm.tqdm(res_paths, desc="Scanning"):
             img_r = load_image_bgr(p)
             e_r = ve.embed_np_bgr(img_r).astype("float32")[None,:]
-            D, I, metas = idx.search(e_r, topk=cfg["retrieval"]["topk"])
+            D, I, metas = idx.search(e_r, topk=cfg["faiss"]["topk"])
             # for topk candidates, compute signals and fuse
             entries = []
             for rank, (d,i,m) in enumerate(zip(D[0], I[0], metas[0])):
@@ -59,9 +51,7 @@ def main():
                 e_o = ve.embed_np_bgr(img_o)
                 gcos = cosine(e_r[0], e_o)
 
-                lratio, mm = (0.0, (None,None,None))
                 feats = {"global_cos": gcos}
-
                 entry = {
                     "reseller": p,
                     "original": cand_path,

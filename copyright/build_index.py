@@ -16,10 +16,10 @@ def main():
 
     cfg = yaml.safe_load(open(args.config, "r", encoding="utf-8"))
 
-    ve = VisualEmbedder(name=cfg["visual_backbone"]["name"],
+    ve = VisualEmbedder(name=cfg["embedding"]["name"],
                         device=cfg["device"],
-                        input_size=cfg["visual_backbone"]["input_size"],
-                        normalize=cfg["retrieval"]["normalize"])
+                        input_size=cfg["embedding"]["input_size"],
+                        normalize=cfg["faiss"]["normalize"])
 
     paths = []
     for root,_,files in os.walk(args.originals):
@@ -35,9 +35,9 @@ def main():
         embs.append(emb)
         metas.append({"path": p})
     X = np.stack(embs).astype("float32")
-    idx = EmbeddingIndex(dim=X.shape[1], nlist=cfg["retrieval"]["faiss_nlist"],
-                         nprobe=cfg["retrieval"]["faiss_nprobe"],
-                         normalize=cfg["retrieval"]["normalize"])
+    idx = EmbeddingIndex(dim=X.shape[1], nlist=cfg["faiss"]["faiss_nlist"],
+                         nprobe=cfg["faiss"]["faiss_nprobe"],
+                         normalize=cfg["faiss"]["normalize"])
     idx.add(X, metas)
     os.makedirs(args.out, exist_ok=True)
     idx.save(os.path.join(args.out,"originals.faiss"), os.path.join(args.out,"originals.jsonl"))

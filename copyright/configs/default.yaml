@@ -1,33 +1,17 @@
 device: "cuda"   
 
-visual_backbone:
+embedding:
   name: "dino_vitl14"   # ["dino_vitl14", "clip_vitl14"]
   embed_dim: 512
   input_size: 224
 
-retrieval:
+faiss:
   # 원본 수가 수십~수백 장 이하: Flat(=전수 비교)도 충분히 빠르며 정확도 손실 없음
   # 원본이 수천~수십만 장: IVF(또는 HNSW, IVF-PQ 등)로 가속이 필요 → nlist를 ~sqrt(N)부터 시작해 튜닝 권장. (예: N=10,000이면 nlist≈100)
   normalize: true
   faiss_nlist: 1
   faiss_nprobe: 1
-  topk: 5
-
-
-local_match:
-  enable: true
-  max_size: 1200
-  min_matches: 40
-
-ocr:
-  enable: true
-  lang: ["ko", "en"]
-  max_words: 256
-  sentence_model: "sentence-transformers/all-MiniLM-L6-v2"
-
-fusion:
-  hidden: 16
-  checkpoint: "artifacts/fusion_mlp.pt"
+  topk: 1
 
 thresholds:
   copied: 0.4

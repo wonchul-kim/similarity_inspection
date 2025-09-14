@@ -116,8 +116,10 @@ def main():
             # image-level aggregation: average of per-patch best scores
             if len(best_scores) == 0:
                 avg_score = 0.0
+                max_score = 0.0
             else:
                 avg_score = float(np.mean(best_scores))
+                max_score = float(max(best_scores))
 
             image_decision = "copied" if avg_score >= cfg["thresholds"]["copied"] else "uncertain"
 
@@ -130,6 +132,7 @@ def main():
                 "patch_height": patch_h,
                 "patches": per_patch_results,
                 "avg_patch_best_score": avg_score,
+                "max_patch_best_score": max_score,
                 "decision": image_decision,
                 "timestamp": time.time()
             }

@@ -48,7 +48,7 @@ def main():
                 print("Warning: failed to load", p)
                 continue
         except Exception as e:
-            print("Warning: exception loading", p, e)
+            raise RuntimeError("Warning: exception loading", p, e)
             continue
 
         if not patch_use:
@@ -57,7 +57,7 @@ def main():
                 embs.append(emb)
                 metas.append({"path": p})
             except Exception as e:
-                print("Warning: failed to embed", p, e)
+                raise RuntimeError("Warning: failed to embed", p, e)
             continue
 
         h, w = img.shape[:2]

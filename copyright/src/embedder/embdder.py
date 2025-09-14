@@ -15,7 +15,7 @@ class VisualEmbedder(nn.Module):
         self.device = torch.device(device if torch.cuda.is_available() or device=="cpu" else "cpu")
         self.normalize = normalize
         self.input_size = input_size
-        if "dino2" in name:
+        if "dinov2" in name:
             if 'vigl14' in name:
                 self.model = timm.create_model("vit_giant_patch14_reg4_dinov2.lvd142m", pretrained=True)
             elif 'vitl14' in name:

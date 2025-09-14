@@ -1,12 +1,13 @@
 playwright
 opencv-python
 kornia
+kornia_moons
 matplotlib
 open_clip_torch
 timm
-wandb-0.12.21
-faiss
+wandb==0.12.21
+faiss-gpu
 tf-keras
 easyocr
 sentence_transformers
-numpy-1.26
+numpy==1.26 

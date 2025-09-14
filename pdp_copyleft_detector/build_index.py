@@ -1,14 +1,17 @@
-import argparse, os, json, numpy as np, tqdm
-from PIL import Image
+import argparse, os, numpy as np, tqdm
 from copyleft_detector import VisualEmbedder, EmbeddingIndex
 from copyleft_detector.utils import load_image_bgr
 import yaml
 
+from pathlib import Path
+FILE = Path(__file__)
+ROOT = FILE.parent.resolve()
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--originals", default='/HDD/_projects/github/similarity_inspection/assets/original')
-    ap.add_argument("--config", default="/HDD/_projects/github/similarity_inspection/pdp_copyleft_detector/configs/default.yaml")
-    ap.add_argument("--out", default='/HDD/_projects/github/similarity_inspection/outputs/pdp/index')
+    ap.add_argument("--config", default=str(ROOT / "configs/default.yaml"))
+    ap.add_argument("--originals", default=str(ROOT / '../assets/original'))
+    ap.add_argument("--out", default=str(ROOT / '../outputs/pdp/index'))
     args = ap.parse_args()
 
     cfg = yaml.safe_load(open(args.config, "r", encoding="utf-8"))

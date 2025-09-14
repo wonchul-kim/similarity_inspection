@@ -1,17 +1,24 @@
 import time
 import argparse, os, json, numpy as np, tqdm, cv2, yaml, math
-from copyleft_detector import VisualEmbedder, EmbeddingIndex, LoFTRMatcher, OCRTextEncoder, FusionMLP, fuse_signals
+from copyleft_detector import (VisualEmbedder, EmbeddingIndex, 
+                               LoFTRMatcher, 
+                               FusionMLP, fuse_signals)
+# , OCRTextEncoder,  
 from copyleft_detector.utils import load_image_bgr, save_debug_matches
+
+from pathlib import Path
+FILE = Path(__file__)
+ROOT = FILE.parent.resolve()
 
 def cosine(a,b): return float((a*b).sum())
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--resellers", default='/HDD/_projects/github/similarity_inspection/assets/reseller')
-    ap.add_argument("--index", default='/HDD/_projects/github/similarity_inspection/outputs/pdp/index/originals.faiss', help="FAISS index path")
-    ap.add_argument("--catalog", default='/HDD/_projects/github/similarity_inspection/outputs/pdp/index/originals.jsonl', help="JSONL meta for originals")
-    ap.add_argument("--config", default="/HDD/_projects/github/similarity_inspection/pdp_copyleft_detector/configs/default.yaml")
-    ap.add_argument("--out", default='/HDD/_projects/github/similarity_inspection/outputs/pdp', help="Output JSONL")
+    ap.add_argument("--resellers", default=str(ROOT / '../assets/reseller'))
+    ap.add_argument("--index", default=str(ROOT / '../outputs/pdp/index/originals.faiss'), help="FAISS index path")
+    ap.add_argument("--catalog", default=str(ROOT / '../outputs/pdp/index/originals.jsonl'), help="JSONL meta for originals")
+    ap.add_argument("--config", default=str(ROOT / "configs/default.yaml"))
+    ap.add_argument("--out", default=str(ROOT / '../outputs/pdp'), help="Output JSONL")
     ap.add_argument("--save-viz", action="store_true", default='True', help="Save LoFTR viz images")
     args = ap.parse_args()
 
@@ -23,8 +30,12 @@ def main():
 
     idx = EmbeddingIndex.load(args.index, args.catalog, normalize=cfg["retrieval"]["normalize"])
     idx.index.nprobe = cfg["retrieval"]["faiss_nprobe"]
-    matcher = LoFTRMatcher(device=cfg["device"]) if cfg["local_match"]["enable"] else None
-    ocr = OCRTextEncoder(langs=cfg["ocr"]["lang"], sentence_model=cfg["ocr"]["sentence_model"], device=cfg["device"]) if cfg["ocr"]["enable"] else None
+    
+    matcher = None
+    # matcher = LoFTRMatcher(device=cfg["device"]) if cfg["local_match"]["enable"] else None
+    
+    ocr = None
+    # ocr = OCRTextEncoder(langs=cfg["ocr"]["lang"], sentence_model=cfg["ocr"]["sentence_model"], device=cfg["device"]) if cfg["ocr"]["enable"] else None
 
     mlp = None
     if os.path.exists(cfg["fusion"]["checkpoint"]):
@@ -42,7 +53,7 @@ def main():
 
     os.makedirs("results/viz", exist_ok=True)
 
-    with open(os.path.join(args.out, 'scan.jsonl'), "w", encoding="utf-8") as fout:
+    with open(os.path.join(args.out, 'scan.json'), "w", encoding="utf-8") as fout:
         for p in tqdm.tqdm(res_paths, desc="Scanning"):
             img_r = load_image_bgr(p)
             e_r = ve.embed_np_bgr(img_r).astype("float32")[None,:]

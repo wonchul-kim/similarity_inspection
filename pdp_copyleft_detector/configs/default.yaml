@@ -1,9 +1,9 @@
-device: "cuda"   # "cpu" or "cuda"
+device: "cuda"   
 
 visual_backbone:
   name: "dino_vitl14"   # ["dino_vitl14", "clip_vitl14"]
-  embed_dim: 1024
-  input_size: 518
+  embed_dim: 512
+  input_size: 224
 
 retrieval:
   # 원본 수가 수십~수백 장 이하: Flat(=전수 비교)도 충분히 빠르며 정확도 손실 없음

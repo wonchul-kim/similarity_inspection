@@ -2,3 +2,11 @@ playwright
 opencv-python
 kornia
 matplotlib
+open_clip_torch
+timm
+wandb-0.12.21
+faiss
+tf-keras
+easyocr
+sentence_transformers
+numpy-1.26

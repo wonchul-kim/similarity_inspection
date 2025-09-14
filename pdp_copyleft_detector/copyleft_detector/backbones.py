@@ -16,7 +16,8 @@ class VisualEmbedder(nn.Module):
         self.normalize = normalize
         self.input_size = input_size
         if name == "dino_vitl14":
-            self.model = timm.create_model("vit_large_patch14_dinov2.lvd142m", pretrained=True)
+            # self.model = timm.create_model("vit_large_patch14_dinov2.lvd142m", pretrained=True)
+            self.model = timm.create_model("vit_small_patch16_224", pretrained=True)
             self.out_dim = self.model.num_features
             self.forward_fn = self._forward_timm
             mean = (0.485,0.456,0.406); std=(0.229,0.224,0.225)

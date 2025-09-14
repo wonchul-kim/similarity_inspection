@@ -4,12 +4,12 @@ reseller_image_dir: /HDD/github/similarity_inspection/assets/reseller
 output_dir: /HDD/github/similarity_inspection/outputs
 
 patch:
-  use: False
+  use: true
   width: 1024
   height: 1024
 
 embedding:
-  name: "dino_vitl14"   # ["dino_vitl14", "clip_vitl14"]
+  name: "dino_vitl14" # ["dino_vitl14", "clip_vitl14"]
   embed_dim: 512
   input_size: 224
   output_dir: embedding
